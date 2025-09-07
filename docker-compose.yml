@@ -1,0 +1,41 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    container_name: intelliexo-api
+    ports:
+      - "5000:5000"
+    environment:
+      MODEL_NAME: gpt2
+      DEVICE: cpu
+      MAX_TOKENS: "256"
+      # Optional: persist HF cache to speed up rebuilds
+      HF_HOME: /cache/huggingface
+    volumes:
+      - hf-cache:/cache/huggingface
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+
+  ui:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.ui
+    container_name: intelliexo-ui
+    ports:
+      - "8501:8501"
+    environment:
+      # Tell Streamlit where to reach the API on the internal docker network
+      API_BASE: http://api:5000
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  hf-cache:

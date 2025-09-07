@@ -1,0 +1,8 @@
+torch
+transformers
+flask
+fastapi
+uvicorn
+pyyaml
+streamlit
+requests
